@@ -4,7 +4,7 @@ Gazdasági webalkalmazás demó – értékesítési dashboard, cash flow modell
 
 ## 🔴 Élő demó
 
-👉 **[Megnyitás – így kell kinéznie a kész projektnek](https:/davidvasadi.github.io/financeos/)**
+👉 **[Megnyitás – így kell kinéznie a kész projektnek](https://davidvasadi.github.io/financeos/)**
 
 ---
 
