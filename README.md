@@ -3,8 +3,7 @@
 > Gazdasági webalkalmazás demó – értékesítési dashboard, cash flow modell, költségkövető és számlázó egy helyen.
 
 ![FinanceOS Demo](https://img.shields.io/badge/demo-live-00e5a0?style=flat-square&logo=github)
-![Stack](https://img.shields.io/badge/stack-HTML%20%2F%20CSS%20%2F%20JS-6c63ff?style=flat-square)
-![License](https://img.shields.io/badge/license-MIT-ff7b54?style=flat-square)
+
 
 ---
 
