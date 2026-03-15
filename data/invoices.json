@@ -1,0 +1,26 @@
+{
+  "invoices": [
+    {
+      "id": 42,
+      "number": "2026-0042",
+      "status": "draft",
+      "issued_at": "2026-03-15",
+      "due_date": "2026-04-01",
+      "issuer": {
+        "name": "Kovács Bt.",
+        "address": "1234 Budapest, Fő utca 12.",
+        "tax_number": "12345678-2-41",
+        "email": "kovacs@example.hu"
+      },
+      "buyer_name": "Nagy Kft.",
+      "items": [
+        { "desc": "Webfejlesztés (óra)", "qty": 20, "unit_price": 12000 },
+        { "desc": "Domain regisztráció", "qty": 1,  "unit_price": 8000  }
+      ],
+      "net_total":   248000,
+      "vat_rate":    0.27,
+      "vat_amount":  66960,
+      "gross_total": 314960
+    }
+  ]
+}

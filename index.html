@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>[davelopment]® · FinanceOS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#09090f;--bg2:#111118;--bg3:#1a1a24;--bg4:#222230;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.12);
+  --text:#eeeef5;--muted:#666680;--muted2:#333350;
+  --accent:#6c63ff;--accent2:#00e5a0;--accent3:#ff7b54;--accent4:#b06fff;--danger:#ff4f6d;
+  --font:'Space Grotesk',sans-serif;--mono:'Space Mono',monospace;
+  --radius:12px;--radius-sm:8px;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;overflow-x:hidden;}
+
+/* ── APP SHELL ── */
+.app{display:flex;min-height:100vh;}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:230px;flex-shrink:0;background:var(--bg2);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  position:fixed;top:0;left:0;height:100vh;z-index:200;
+  transition:transform 0.28s cubic-bezier(.4,0,.2,1);
+  overflow-y:auto;
+}
+.logo-area{padding:22px 20px 18px;border-bottom:1px solid var(--border);}
+.logo-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--bg3);border:1px solid var(--border2);
+  border-radius:9px;padding:8px 13px;
+}
+.lb{font-family:var(--mono);font-size:15px;color:var(--text);font-weight:700;line-height:1;}
+.ln{font-family:var(--mono);font-size:15px;color:var(--text);font-weight:700;letter-spacing:-0.3px;}
+.lr{font-size:9px;color:var(--text);vertical-align:super;line-height:1;}
+.logo-sub{font-size:11px;color:var(--muted);margin-top:10px;font-family:var(--mono);}
+.logo-sub span{color:var(--accent2);}
+.nav-section{font-size:10px;color:var(--muted2);padding:18px 20px 6px;letter-spacing:0.1em;text-transform:uppercase;font-family:var(--mono);}
+.nav-item{
+  display:flex;align-items:center;gap:10px;padding:10px 20px;
+  cursor:pointer;color:var(--muted);font-size:13px;font-weight:500;
+  border-left:2px solid transparent;transition:all 0.15s;
+}
+.nav-item:hover{color:var(--text);background:rgba(255,255,255,0.03);}
+.nav-item.active{color:var(--text);border-left-color:var(--accent);background:rgba(108,99,255,0.09);}
+.nav-dot{width:7px;height:7px;border-radius:50%;border:1.5px solid currentColor;flex-shrink:0;transition:all 0.15s;}
+.nav-item.active .nav-dot{background:var(--accent);border-color:var(--accent);}
+.sidebar-footer{margin-top:auto;padding:16px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--muted2);font-family:var(--mono);}
+
+/* ── OVERLAY ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:150;}
+.overlay.show{display:block;}
+
+/* ── MAIN ── */
+.main{flex:1;margin-left:230px;display:flex;flex-direction:column;min-height:100vh;transition:margin 0.28s;}
+
+/* ── TOPBAR ── */
+.topbar{
+  height:54px;background:var(--bg2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;position:sticky;top:0;z-index:100;gap:12px;
+}
+.hamburger{display:none;background:none;border:1px solid var(--border2);border-radius:var(--radius-sm);padding:7px 9px;cursor:pointer;color:var(--text);align-items:center;justify-content:center;}
+.topbar-title{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.topbar-right{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.live-badge{display:flex;align-items:center;gap:5px;background:rgba(0,229,160,0.1);border:1px solid rgba(0,229,160,0.2);border-radius:20px;padding:4px 11px;font-size:11px;color:var(--accent2);font-family:var(--mono);}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--accent2);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.year-sel{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:12px;padding:5px 10px;outline:none;cursor:pointer;}
+
+/* ── CONTENT ── */
+.content{padding:22px 24px;flex:1;}
+
+/* ── PAGES ── */
+.page{display:none;animation:fadeUp 0.2s ease;}
+.page.active{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ── METRICS ── */
+.metrics-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px;}
+.metric-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;position:relative;overflow:hidden;}
+.metric-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--mc,var(--accent));opacity:.85;}
+.metric-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-family:var(--mono);}
+.metric-val{font-size:24px;font-weight:700;margin:6px 0 4px;letter-spacing:-.5px;line-height:1;}
+.metric-delta{font-size:11px;font-family:var(--mono);}
+.up{color:var(--accent2);} .dn{color:var(--danger);}
+
+/* ── GRIDS ── */
+.grid-2{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:18px;}
+.grid-2b{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:18px;}
+
+/* ── CARD ── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;}
+.card-title{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-family:var(--mono);margin-bottom:14px;}
+
+/* ── TABLE ── */
+.data-table{width:100%;border-collapse:collapse;font-size:13px;}
+.data-table th{text-align:left;color:var(--muted);font-size:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;padding:7px 10px;border-bottom:1px solid var(--border);font-weight:500;}
+.data-table td{padding:9px 10px;border-bottom:1px solid var(--border);color:var(--text);}
+.data-table tr:last-child td{border-bottom:none;}
+.data-table tr:hover td{background:rgba(255,255,255,0.02);}
+.pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;font-family:var(--mono);}
+.pill-g{background:rgba(0,229,160,0.1);color:var(--accent2);}
+.pill-r{background:rgba(255,79,109,0.1);color:var(--danger);}
+.pill-a{background:rgba(255,123,84,0.1);color:var(--accent3);}
+
+/* ── FORMS ── */
+.form-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px;}
+.fg{display:flex;flex-direction:column;gap:5px;}
+.fg label{font-size:10px;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;}
+.fg input,.fg select{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:13px;padding:8px 11px;outline:none;transition:border .15s;}
+.fg input:focus,.fg select:focus{border-color:var(--accent);}
+.fg input[type=number]{width:110px;} .fg input[type=text]{width:155px;}
+.btn{padding:8px 18px;border-radius:var(--radius-sm);font-size:13px;font-family:var(--font);cursor:pointer;font-weight:600;border:none;transition:all .15s;}
+.btn-p{background:var(--accent);color:#fff;} .btn-p:hover{filter:brightness(1.2);}
+.btn-g{background:transparent;border:1px solid var(--border2);color:var(--muted);} .btn-g:hover{color:var(--text);background:var(--bg3);}
+
+/* ── SLIDERS ── */
+.slider-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:18px;}
+.sl-group{background:var(--bg3);border-radius:var(--radius-sm);padding:13px 15px;}
+.sl-group label{font-size:10px;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;display:flex;justify-content:space-between;}
+.sl-group label span{color:var(--accent);font-weight:700;}
+.sl-group input[type=range]{width:100%;margin-top:10px;accent-color:var(--accent);}
+
+/* ── PROGRESS ── */
+.prog-bar{height:5px;background:var(--bg4);border-radius:3px;margin-top:5px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:3px;transition:width .4s;}
+
+/* ── INVOICE ── */
+.inv-cols{display:grid;grid-template-columns:1fr 75px 110px 110px 30px;gap:8px;align-items:center;margin-bottom:8px;}
+.inv-cols input{background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--font);font-size:13px;padding:7px 10px;outline:none;width:100%;}
+.inv-cols input:focus{border-color:var(--accent);}
+.inv-tot{font-size:13px;font-weight:600;font-family:var(--mono);}
+.del-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:0;}
+.del-btn:hover{color:var(--danger);}
+.inv-summary{display:flex;flex-direction:column;align-items:flex-end;gap:5px;padding-top:12px;border-top:1px solid var(--border);margin-top:8px;}
+.inv-sum-row{display:flex;gap:52px;font-size:13px;}
+.inv-sum-row span:first-child{color:var(--muted);}
+.inv-grand{font-size:20px;font-weight:700;color:var(--accent);font-family:var(--mono);}
+
+/* ── RESPONSIVE ── */
+@media(max-width:1024px){
+  .metrics-row{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .grid-2{grid-template-columns:1fr;}
+}
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:none;}
+  .main{margin-left:0;}
+  .hamburger{display:flex;}
+  .topbar{padding:0 14px;}
+  .content{padding:14px 14px;}
+  .metrics-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+  .grid-2b{grid-template-columns:1fr;}
+  .grid-3{grid-template-columns:1fr 1fr;}
+  .slider-row{grid-template-columns:1fr;}
+  .metric-val{font-size:20px;}
+}
+@media(max-width:480px){
+  .metrics-row{grid-template-columns:1fr 1fr;}
+  .grid-3{grid-template-columns:1fr;}
+  .live-badge{display:none;}
+  .form-row{flex-direction:column;align-items:stretch;}
+  .fg input[type=text],.fg input[type=number]{width:100%;}
+  .inv-cols{grid-template-columns:1fr 65px 90px 28px;}
+  .inv-price-hide{display:none;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- OVERLAY -->
+  <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <div class="logo-area">
+      <div class="logo-badge">
+        <span class="lb">[</span><span class="ln">davelopment</span><span class="lb">]</span><span class="lr">®</span>
+      </div>
+      <div class="logo-sub">FinanceOS &middot; <span>v2.0</span></div>
+    </div>
+    <div class="nav-section">Modulok</div>
+    <div class="nav-item active" onclick="showPage('dashboard',this)"><span class="nav-dot"></span>Értékesítés</div>
+    <div class="nav-item" onclick="showPage('cashflow',this)"><span class="nav-dot"></span>Cash Flow</div>
+    <div class="nav-item" onclick="showPage('koltseg',this)"><span class="nav-dot"></span>Költségkövető</div>
+    <div class="nav-item" onclick="showPage('szamla',this)"><span class="nav-dot"></span>Számlázó</div>
+    <div class="sidebar-footer">&copy; 2026 [davelopment]&reg;</div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main" id="main">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+          <rect width="16" height="2" rx="1" fill="currentColor"/>
+          <rect y="5" width="16" height="2" rx="1" fill="currentColor"/>
+          <rect y="10" width="16" height="2" rx="1" fill="currentColor"/>
+        </svg>
+      </button>
+      <div class="topbar-title" id="page-title">Értékesítési Dashboard</div>
+      <div class="topbar-right">
+        <div class="live-badge"><div class="live-dot"></div>Élő</div>
+        <select class="year-sel"><option>2026</option><option>2025</option></select>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ══════════════════ PAGE: ÉRTÉKESÍTÉS ══════════════════ -->
+      <div class="page active" id="page-dashboard">
+        <div class="metrics-row">
+          <div class="metric-card" style="--mc:#6c63ff">
+            <div class="metric-lbl">Bevétel</div>
+            <div class="metric-val">48,2M</div>
+            <div class="metric-delta up">▲ 12% vs előző év</div>
+          </div>
+          <div class="metric-card" style="--mc:#00e5a0">
+            <div class="metric-lbl">Rendelések</div>
+            <div class="metric-val">1 248</div>
+            <div class="metric-delta up">▲ 8%</div>
+          </div>
+          <div class="metric-card" style="--mc:#ff7b54">
+            <div class="metric-lbl">Átl. kosárérték</div>
+            <div class="metric-val">38,6e</div>
+            <div class="metric-delta dn">▼ 3%</div>
+          </div>
+          <div class="metric-card" style="--mc:#b06fff">
+            <div class="metric-lbl">Konverzió</div>
+            <div class="metric-val">4,7%</div>
+            <div class="metric-delta up">▲ 0.4pp</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">Havi bevétel (eFt)</div>
+            <div style="position:relative;height:210px"><canvas id="revChart"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Kategória megoszlás</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+              <span style="font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:2px;background:#6c63ff;display:inline-block"></span>Elektronika 38%</span>
+              <span style="font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:2px;background:#00e5a0;display:inline-block"></span>Ruházat 27%</span>
+              <span style="font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:2px;background:#ff7b54;display:inline-block"></span>Élelmiszer 20%</span>
+              <span style="font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:2px;background:#b06fff;display:inline-block"></span>Egyéb 15%</span>
+            </div>
+            <div style="position:relative;height:165px"><canvas id="catPie"></canvas></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Top termékek</div>
+          <table class="data-table">
+            <thead><tr><th>Termék</th><th>Eladott db</th><th>Bevétel</th><th>Trend</th></tr></thead>
+            <tbody>
+              <tr><td>Laptop Pro X</td><td>312</td><td>9 360 000 Ft</td><td><span class="pill pill-g">▲ 18%</span></td></tr>
+              <tr><td>Okosóra S5</td><td>487</td><td>7 305 000 Ft</td><td><span class="pill pill-g">▲ 24%</span></td></tr>
+              <tr><td>Télikabát Basic</td><td>654</td><td>5 886 000 Ft</td><td><span class="pill pill-a">= 0%</span></td></tr>
+              <tr><td>Kávéfőző Deluxe</td><td>213</td><td>4 260 000 Ft</td><td><span class="pill pill-r">▼ 7%</span></td></tr>
+              <tr><td>Futócipő Air</td><td>389</td><td>3 890 000 Ft</td><td><span class="pill pill-g">▲ 11%</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══════════════════ PAGE: CASH FLOW ══════════════════ -->
+      <div class="page" id="page-cashflow">
+        <div class="metrics-row">
+          <div class="metric-card" style="--mc:#6c63ff"><div class="metric-lbl">12. havi bevétel</div><div class="metric-val" id="cf-r12">—</div><div class="metric-delta" style="color:var(--muted)">eFt</div></div>
+          <div class="metric-card" style="--mc:#00e5a0"><div class="metric-lbl">12. havi nettó CF</div><div class="metric-val" id="cf-n12">—</div><div class="metric-delta" id="cf-n12d"></div></div>
+          <div class="metric-card" style="--mc:#b06fff"><div class="metric-lbl">Kumulált CF</div><div class="metric-val" id="cf-c12">—</div><div class="metric-delta" id="cf-c12d"></div></div>
+          <div class="metric-card" style="--mc:#ff7b54"><div class="metric-lbl">Break-even</div><div class="metric-val" id="cf-be">—</div><div class="metric-delta" style="color:var(--muted)">hónap</div></div>
+        </div>
+
+        <div class="slider-row">
+          <div class="sl-group"><label>Induló bevétel (eFt/hó)<span id="rv-v">500</span></label><input type="range" min="100" max="2000" value="500" step="10" id="rv" oninput="updateCF()"></div>
+          <div class="sl-group"><label>Növekedés/hó (%)<span id="rg-v">5.0</span></label><input type="range" min="0" max="20" value="5" step="0.5" id="rg" oninput="updateCF()"></div>
+          <div class="sl-group"><label>Fix kiadás (eFt/hó)<span id="fc-v">200</span></label><input type="range" min="50" max="1000" value="200" step="10" id="fc" oninput="updateCF()"></div>
+          <div class="sl-group"><label>Változó kiadás (bev. %)<span id="vc-v">25</span></label><input type="range" min="0" max="60" value="25" step="1" id="vc" oninput="updateCF()"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Bevétel / Nettó CF / Kumulált (eFt)</div>
+          <div style="position:relative;height:280px"><canvas id="cfChart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- ══════════════════ PAGE: KÖLTSÉGKÖVETŐ ══════════════════ -->
+      <div class="page" id="page-koltseg">
+        <div class="grid-3">
+          <div class="metric-card" style="--mc:#ff7b54"><div class="metric-lbl">Összes kiadás</div><div class="metric-val" id="kk-total">0 Ft</div><div class="metric-delta" style="color:var(--muted)">Novemberben</div></div>
+          <div class="metric-card" style="--mc:#6c63ff"><div class="metric-lbl">Havi büdzsé</div><div class="metric-val">150 000 Ft</div><div class="metric-delta" style="color:var(--muted)">Keret</div></div>
+          <div class="metric-card" style="--mc:#00e5a0"><div class="metric-lbl">Maradvány</div><div class="metric-val" id="kk-rem">150 000 Ft</div><div class="metric-delta" id="kk-remd"></div></div>
+        </div>
+
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-title">Új tétel</div>
+          <div class="form-row">
+            <div class="fg"><label>Megnevezés</label><input type="text" id="kk-desc" placeholder="pl. Ebéd"></div>
+            <div class="fg"><label>Összeg (Ft)</label><input type="number" id="kk-amt" placeholder="3500" min="0"></div>
+            <div class="fg"><label>Kategória</label>
+              <select id="kk-cat" style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:13px;padding:8px 11px;outline:none;">
+                <option>Élelmiszer</option><option>Közlekedés</option><option>Szórakozás</option><option>Lakás</option><option>Egyéb</option>
+              </select>
+            </div>
+            <div class="fg"><label>&nbsp;</label><button class="btn btn-p" onclick="addKK()">+ Hozzáad</button></div>
+          </div>
+        </div>
+
+        <div class="grid-2b">
+          <div class="card">
+            <div class="card-title">Tételek</div>
+            <div id="kk-list" style="max-height:280px;overflow-y:auto"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Büdzsé kihasználtság</div>
+            <div id="kk-bars"></div>
+            <div style="position:relative;height:150px;margin-top:14px"><canvas id="kkPie"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════ PAGE: SZÁMLÁZÓ ══════════════════ -->
+      <div class="page" id="page-szamla">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:17px;font-weight:700">Számla #2026-0042</span>
+            <span class="pill pill-a">Piszkozat</span>
+          </div>
+          <span style="font-size:11px;color:var(--muted);font-family:var(--mono)">Kiállítva: 2026-03-15</span>
+        </div>
+
+        <div class="grid-2b" style="margin-bottom:14px">
+          <div class="card">
+            <div class="card-title">Kiállító</div>
+            <div style="font-size:14px;font-weight:600;margin-bottom:5px">Kovács Bt.</div>
+            <div style="font-size:12px;color:var(--muted);line-height:1.9">1234 Budapest, Fő utca 12.<br>Adószám: 12345678-2-41<br><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="4d26223b2c2e3e0d28352c203d2128632538">[email&#160;protected]</a></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Vevő</div>
+            <input type="text" id="buyer" value="Nagy Kft." style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:14px;font-weight:600;padding:8px 12px;outline:none;width:100%;margin-bottom:10px;">
+            <div style="font-size:12px;color:var(--muted)">Fizetési határidő:
+              <input type="date" value="2026-04-01" style="background:transparent;border:none;color:var(--muted);font-family:var(--mono);font-size:12px;outline:none;margin-left:4px;">
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-title">Tételek</div>
+          <div class="inv-cols" style="margin-bottom:6px">
+            <span style="font-size:10px;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em">Megnevezés</span>
+            <span style="font-size:10px;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em">Menny.</span>
+            <span style="font-size:10px;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em inv-price-hide">Egységár</span>
+            <span style="font-size:10px;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em">Összeg</span>
+            <span></span>
+          </div>
+          <div id="inv-rows"></div>
+          <button class="btn btn-g" style="margin-top:8px;font-size:12px" onclick="addInvRow()">+ Sor hozzáadása</button>
+          <div class="inv-summary">
+            <div class="inv-sum-row"><span>Nettó összeg:</span><span id="inv-net" style="font-family:var(--mono)">0 Ft</span></div>
+            <div class="inv-sum-row"><span>ÁFA (27%):</span><span id="inv-vat" style="font-family:var(--mono)">0 Ft</span></div>
+            <div class="inv-sum-row" style="margin-top:8px"><span style="font-size:16px;font-weight:700">Fizetendő:</span><span class="inv-grand" id="inv-gross">0 Ft</span></div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;justify-content:flex-end">
+          <button class="btn btn-g">Mentés</button>
+          <button class="btn btn-p">PDF letöltés</button>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+/* ──────── NAV ──────── */
+/* ── JSON BETÖLTÉS (Flask backendnél: fetch('/api/dashboard') stb.) ── */
+const DATA_BASE='./data';
+async function loadJSON(file){
+  try{const r=await fetch(`${DATA_BASE}/${file}`);return await r.json();}
+  catch(e){console.warn('Nem sikerült:',file,e);return null;}
+}
+
+const TITLES = {dashboard:'Értékesítési Dashboard',cashflow:'Cash Flow Modell',koltseg:'Költségkövető',szamla:'Számlázó'};
+function showPage(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  el.classList.add('active');
+  document.getElementById('page-title').textContent=TITLES[id];
+  if(id==='cashflow')updateCF();
+  if(id==='koltseg')renderKK();
+  closeSidebar();
+}
+
+/* ──────── SIDEBAR TOGGLE ──────── */
+function toggleSidebar(){
+  const sb=document.getElementById('sidebar');
+  const ov=document.getElementById('overlay');
+  sb.classList.toggle('open');
+  ov.classList.toggle('show');
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
+
+/* ──────── ÉRTÉKESÍTÉS CHARTS (dashboard.json) ──────── */
+async function initDashboard(){
+  const d = await loadJSON('dashboard.json');
+  if(!d) return;
+  // Metrikák
+  document.getElementById('m-rev') && (document.getElementById('m-rev').textContent = d.metrics.revenue+' Ft');
+  // Bevétel chart
+  new Chart(document.getElementById('revChart'),{
+    type:'line',
+    data:{
+      labels:['Jan','Feb','Már','Ápr','Máj','Jún','Júl','Aug','Sze','Okt','Nov','Dec'],
+      datasets:[
+        {label:'2026',data:d.monthly_revenue['2026'],
+         borderColor:'#6c63ff',backgroundColor:'rgba(108,99,255,0.1)',tension:0.4,pointRadius:3,fill:true,borderWidth:2},
+        {label:'2025',data:d.monthly_revenue['2025'],
+         borderColor:'#444460',backgroundColor:'transparent',tension:0.4,pointRadius:2,borderDash:[4,4],borderWidth:1.5}
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{color:'#666680',font:{size:11}},grid:{color:'rgba(255,255,255,0.04)'}},
+        y:{ticks:{color:'#666680',font:{size:11},callback:v=>v+'e'},grid:{color:'rgba(255,255,255,0.04)'}}
+      }
+    }
+  });
+  // Kategória pite
+  new Chart(document.getElementById('catPie'),{
+    type:'doughnut',
+    data:{
+      labels: d.categories.map(c=>c.name),
+      datasets:[{data:d.categories.map(c=>c.pct),backgroundColor:d.categories.map(c=>c.color),borderWidth:0}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{display:false}}}
+  });
+}
+initDashboard();
+
+/* ──────── CASH FLOW ──────── */
+let cfInst;
+function updateCF(){
+  const rv=+document.getElementById('rv').value;
+  const rg=+document.getElementById('rg').value/100;
+  const fc=+document.getElementById('fc').value;
+  const vc=+document.getElementById('vc').value/100;
+  document.getElementById('rv-v').textContent=rv;
+  document.getElementById('rg-v').textContent=(+document.getElementById('rg').value).toFixed(1);
+  document.getElementById('fc-v').textContent=fc;
+  document.getElementById('vc-v').textContent=document.getElementById('vc').value;
+  const labels=[],revs=[],nets=[],cums=[];
+  let cum=0,be=null;
+  for(let m=1;m<=12;m++){
+    const r=Math.round(rv*Math.pow(1+rg,m-1));
+    const c=Math.round(fc+r*vc);
+    const n=r-c; cum+=n;
+    if(be===null&&cum>=0)be=m;
+    labels.push(m+'. hó'); revs.push(r); nets.push(n); cums.push(cum);
+  }
+  document.getElementById('cf-r12').textContent=revs[11].toLocaleString('hu-HU');
+  document.getElementById('cf-n12').textContent=nets[11].toLocaleString('hu-HU');
+  const nd=document.getElementById('cf-n12d');
+  nd.textContent=nets[11]>=0?'Nyereséges':'Veszteséges';
+  nd.className='metric-delta '+(nets[11]>=0?'up':'dn');
+  document.getElementById('cf-c12').textContent=cums[11].toLocaleString('hu-HU');
+  const cd=document.getElementById('cf-c12d');
+  cd.textContent=cums[11]>=0?'Pozitív':'Negatív';
+  cd.className='metric-delta '+(cums[11]>=0?'up':'dn');
+  document.getElementById('cf-be').textContent=be||'12+';
+  if(cfInst)cfInst.destroy();
+  cfInst=new Chart(document.getElementById('cfChart'),{
+    data:{labels,datasets:[
+      {type:'bar',label:'Bevétel',data:revs,backgroundColor:'rgba(108,99,255,0.55)',yAxisID:'y'},
+      {type:'bar',label:'Nettó CF',data:nets,backgroundColor:nets.map(v=>v>=0?'rgba(0,229,160,0.55)':'rgba(255,79,109,0.55)'),yAxisID:'y'},
+      {type:'line',label:'Kum. CF',data:cums,borderColor:'#ff7b54',backgroundColor:'transparent',tension:0.3,pointRadius:3,borderWidth:2,yAxisID:'y2'}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#666680',font:{size:11},boxWidth:10}}},
+      scales:{
+        x:{ticks:{color:'#666680',font:{size:11}},grid:{color:'rgba(255,255,255,0.04)'}},
+        y:{position:'left',ticks:{color:'#666680',font:{size:11},callback:v=>v+'e'},grid:{color:'rgba(255,255,255,0.04)'}},
+        y2:{position:'right',grid:{drawOnChartArea:false},ticks:{color:'#666680',font:{size:11},callback:v=>v+'e'}}
+      }
+    }
+  });
+}
+
+/* ──────── KÖLTSÉGKÖVETŐ ──────── */
+let CAT_COL={'Élelmiszer':'#6c63ff','Közlekedés':'#00e5a0','Szórakozás':'#ff7b54','Lakás':'#b06fff','Egyéb':'#666680'};
+let CAT_BUD={'Élelmiszer':40000,'Közlekedés':15000,'Szórakozás':20000,'Lakás':50000,'Egyéb':25000};
+let kkBudget=150000;
+let kkData=[];
+let kkPieInst;
+
+// expenses.json betöltése
+async function initExpenses(){
+  const d=await loadJSON('expenses.json');
+  if(!d) return;
+  CAT_COL=d.category_colors||CAT_COL;
+  CAT_BUD=d.category_budgets||CAT_BUD;
+  kkBudget=d.budget||150000;
+  kkData=d.expenses.map(e=>({desc:e.desc,amt:e.amount,cat:e.category}));
+  renderKK();
+}
+initExpenses();
+function renderKK(){
+  const total=kkData.reduce((s,t)=>s+t.amt,0);
+  const rem=kkBudget-total;
+  document.getElementById('kk-total').textContent=total.toLocaleString('hu-HU')+' Ft';
+  document.getElementById('kk-rem').textContent=Math.max(0,rem).toLocaleString('hu-HU')+' Ft';
+  const rd=document.getElementById('kk-remd');
+  rd.textContent=rem<0?'Túllépve!':'Szabad';
+  rd.className='metric-delta '+(rem<0?'dn':'up');
+  // list
+  const list=document.getElementById('kk-list');
+  list.innerHTML=[...kkData].reverse().map((t,ri)=>{
+    const i=kkData.length-1-ri;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="width:8px;height:8px;border-radius:50%;background:${CAT_COL[t.cat]||'#888'};flex-shrink:0"></div>
+      <div style="flex:1">
+        <div style="font-size:13px">${t.desc}</div>
+        <div style="font-size:10px;color:var(--muted);font-family:var(--mono)">${t.cat}</div>
+      </div>
+      <div style="font-size:13px;font-weight:600;font-family:var(--mono);color:var(--danger)">-${t.amt.toLocaleString('hu-HU')} Ft</div>
+      <button onclick="delKK(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;padding:0 3px">✕</button>
+    </div>`;
+  }).join('');
+  // bars
+  const catT={};
+  kkData.forEach(t=>catT[t.cat]=(catT[t.cat]||0)+t.amt);
+  document.getElementById('kk-bars').innerHTML=Object.entries(catT).map(([cat,amt])=>{
+    const pct=Math.min(100,Math.round(amt/(CAT_BUD[cat]||25000)*100));
+    const col=pct>90?'#ff4f6d':pct>70?'#ff7b54':CAT_COL[cat];
+    return `<div style="margin-bottom:11px">
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:4px;font-family:var(--mono)">
+        <span>${cat}</span><span>${amt.toLocaleString('hu-HU')} / ${(CAT_BUD[cat]||25000).toLocaleString('hu-HU')} Ft</span>
+      </div>
+      <div class="prog-bar"><div class="prog-fill" style="width:${pct}%;background:${col}"></div></div>
+    </div>`;
+  }).join('');
+  // pie
+  const labels=Object.keys(catT),vals=Object.values(catT),cols=labels.map(l=>CAT_COL[l]||'#888');
+  if(kkPieInst)kkPieInst.destroy();
+  kkPieInst=new Chart(document.getElementById('kkPie'),{
+    type:'doughnut',
+    data:{labels,datasets:[{data:vals,backgroundColor:cols,borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'58%',
+      plugins:{legend:{position:'right',labels:{color:'#666680',font:{size:11},boxWidth:10}}}}
+  });
+}
+function addKK(){
+  const desc=document.getElementById('kk-desc').value.trim();
+  const amt=parseFloat(document.getElementById('kk-amt').value);
+  const cat=document.getElementById('kk-cat').value;
+  if(!desc||!amt||amt<=0)return;
+  kkData.push({desc,amt,cat});
+  document.getElementById('kk-desc').value='';
+  document.getElementById('kk-amt').value='';
+  renderKK();
+}
+function delKK(i){kkData.splice(i,1);renderKK();}
+
+/* ──────── SZÁMLÁZÓ (invoices.json) ──────── */
+let invRows=[];
+async function initInvoices(){
+  const d=await loadJSON('invoices.json');
+  if(!d||!d.invoices.length) return;
+  const inv=d.invoices[0];
+  // vevő neve
+  const buyerEl=document.getElementById('buyer');
+  if(buyerEl) buyerEl.value=inv.buyer_name;
+  // tételek
+  invRows=inv.items.map(it=>({desc:it.desc,qty:it.qty,price:it.unit_price}));
+  renderInv();
+}
+function renderInv(){
+  document.getElementById('inv-rows').innerHTML=invRows.map((r,i)=>`
+    <div class="inv-cols">
+      <input value="${r.desc}" oninput="invRows[${i}].desc=this.value">
+      <input type="number" value="${r.qty}" min="0" oninput="invRows[${i}].qty=+this.value;calcInv()">
+      <input type="number" value="${r.price}" min="0" class="inv-price-hide" oninput="invRows[${i}].price=+this.value;calcInv()">
+      <div class="inv-tot">${(r.qty*r.price).toLocaleString('hu-HU')} Ft</div>
+      <button class="del-btn" onclick="delInvRow(${i})">✕</button>
+    </div>`).join('');
+  calcInv();
+}
+initInvoices();
+function calcInv(){
+  const net=invRows.reduce((s,r)=>s+r.qty*r.price,0);
+  const vat=Math.round(net*0.27),gross=net+vat;
+  document.getElementById('inv-net').textContent=net.toLocaleString('hu-HU')+' Ft';
+  document.getElementById('inv-vat').textContent=vat.toLocaleString('hu-HU')+' Ft';
+  document.getElementById('inv-gross').textContent=gross.toLocaleString('hu-HU')+' Ft';
+  document.querySelectorAll('.inv-tot').forEach((td,i)=>{
+    if(invRows[i])td.textContent=(invRows[i].qty*invRows

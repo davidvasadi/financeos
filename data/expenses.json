@@ -1,0 +1,23 @@
+{
+  "budget": 150000,
+  "category_budgets": {
+    "Élelmiszer":  40000,
+    "Közlekedés":  15000,
+    "Szórakozás":  20000,
+    "Lakás":       50000,
+    "Egyéb":       25000
+  },
+  "category_colors": {
+    "Élelmiszer":  "#6c63ff",
+    "Közlekedés":  "#00e5a0",
+    "Szórakozás":  "#ff7b54",
+    "Lakás":       "#b06fff",
+    "Egyéb":       "#666680"
+  },
+  "expenses": [
+    { "id": 1, "desc": "Hétvégi bevásárlás", "amount": 12400, "category": "Élelmiszer",  "date": "2026-03-01" },
+    { "id": 2, "desc": "BKV bérlet",         "amount": 9500,  "category": "Közlekedés",  "date": "2026-03-02" },
+    { "id": 3, "desc": "Mozi",               "amount": 3200,  "category": "Szórakozás",  "date": "2026-03-05" },
+    { "id": 4, "desc": "Rezsiszámla",        "amount": 22000, "category": "Lakás",       "date": "2026-03-07" }
+  ]
+}
