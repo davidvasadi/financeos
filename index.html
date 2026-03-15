@@ -386,12 +386,55 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
-/* ──────── NAV ──────── */
-/* ── JSON BETÖLTÉS (Flask backendnél: fetch('/api/dashboard') stb.) ── */
-const DATA_BASE='./data';
+/* ──────── INLINE FALLBACK ADATOK ──────────────────────────────────────
+   Ha file:// protokollról nyitják meg (lokálisan), a fetch nem működik.
+   Ilyenkor ezek az inline adatok töltődnek be.
+   Flask backendnél ezeket felváltja: fetch('/api/dashboard') stb.
+   ──────────────────────────────────────────────────────────────────── */
+const INLINE_DATA = {
+  'dashboard.json': {
+    metrics:{revenue:'48,2M',revenue_delta:'+12%',orders:1248,orders_delta:'+8%',avg_cart:'38 620',avg_cart_delta:'-3%',conversion:'4,7%',conversion_delta:'+0.4pp'},
+    monthly_revenue:{'2026':[3200,3800,4100,3600,3900,4500,4800,5100,4300,4700,5200,5000],'2025':[2800,3100,3400,3000,3500,3900,4100,4400,3800,4000,4600,4400]},
+    categories:[{name:'Elektronika',pct:38,color:'#6c63ff'},{name:'Ruházat',pct:27,color:'#00e5a0'},{name:'Élelmiszer',pct:20,color:'#ff7b54'},{name:'Egyéb',pct:15,color:'#b06fff'}],
+    top_products:[
+      {name:'Laptop Pro X',sold:312,revenue:'9 360 000',trend:18,trend_dir:'up'},
+      {name:'Okosóra S5',sold:487,revenue:'7 305 000',trend:24,trend_dir:'up'},
+      {name:'Télikabát Basic',sold:654,revenue:'5 886 000',trend:0,trend_dir:'neutral'},
+      {name:'Kávéfőző Deluxe',sold:213,revenue:'4 260 000',trend:7,trend_dir:'down'},
+      {name:'Futócipő Air',sold:389,revenue:'3 890 000',trend:11,trend_dir:'up'}
+    ]
+  },
+  'expenses.json': {
+    budget:150000,
+    category_budgets:{'Élelmiszer':40000,'Közlekedés':15000,'Szórakozás':20000,'Lakás':50000,'Egyéb':25000},
+    category_colors:{'Élelmiszer':'#6c63ff','Közlekedés':'#00e5a0','Szórakozás':'#ff7b54','Lakás':'#b06fff','Egyéb':'#666680'},
+    expenses:[
+      {id:1,desc:'Hétvégi bevásárlás',amount:12400,category:'Élelmiszer',date:'2026-03-01'},
+      {id:2,desc:'BKV bérlet',amount:9500,category:'Közlekedés',date:'2026-03-02'},
+      {id:3,desc:'Mozi',amount:3200,category:'Szórakozás',date:'2026-03-05'},
+      {id:4,desc:'Rezsiszámla',amount:22000,category:'Lakás',date:'2026-03-07'}
+    ]
+  },
+  'invoices.json': {
+    invoices:[{
+      id:42,number:'2026-0042',status:'draft',issued_at:'2026-03-15',due_date:'2026-04-01',
+      issuer:{name:'Kovács Bt.',address:'1234 Budapest, Fő utca 12.',tax_number:'12345678-2-41',email:'kovacs@example.hu'},
+      buyer_name:'Nagy Kft.',
+      items:[{desc:'Webfejlesztés (óra)',qty:20,unit_price:12000},{desc:'Domain regisztráció',qty:1,unit_price:8000}],
+      net_total:248000,vat_rate:0.27,vat_amount:66960,gross_total:314960
+    }]
+  }
+};
+
 async function loadJSON(file){
-  try{const r=await fetch(`${DATA_BASE}/${file}`);return await r.json();}
-  catch(e){console.warn('Nem sikerült:',file,e);return null;}
+  /* Ha szerveren fut → fetch a data/ mappából (vagy Flask API-ból) */
+  if(location.protocol !== 'file:'){
+    try{const r=await fetch(`./data/${file}`);if(r.ok)return await r.json();}
+    catch(e){console.warn('fetch hiba:',e);}
+  }
+  /* Fallback: inline adatok */
+  console.info(`Inline adat használva: ${file}`);
+  return INLINE_DATA[file] || null;
 }
 
 const TITLES = {dashboard:'Értékesítési Dashboard',cashflow:'Cash Flow Modell',koltseg:'Költségkövető',szamla:'Számlázó'};
@@ -604,6 +647,7 @@ function renderInv(){
   calcInv();
 }
 initInvoices();
+
 function calcInv(){
   const net=invRows.reduce((s,r)=>s+r.qty*r.price,0);
   const vat=Math.round(net*0.27),gross=net+vat;
@@ -611,4 +655,11 @@ function calcInv(){
   document.getElementById('inv-vat').textContent=vat.toLocaleString('hu-HU')+' Ft';
   document.getElementById('inv-gross').textContent=gross.toLocaleString('hu-HU')+' Ft';
   document.querySelectorAll('.inv-tot').forEach((td,i)=>{
-    if(invRows[i])td.textContent=(invRows[i].qty*invRows
+    if(invRows[i])td.textContent=(invRows[i].qty*invRows[i].price).toLocaleString('hu-HU')+' Ft';
+  });
+}
+function addInvRow(){invRows.push({desc:'Új tétel',qty:1,price:0});renderInv();}
+function delInvRow(i){invRows.splice(i,1);renderInv();}
+</script>
+</body>
+</html>
